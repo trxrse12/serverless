@@ -1,19 +1,20 @@
-import * as cdk from '@aws-cdk/core';
-import s3 = require('@aws-cdk/aws-s3');
-import s3n = require("@aws-cdk/aws-s3-notifications");
-import sqs = require('@aws-cdk/aws-sqs');
-import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
-import lambda = require('@aws-cdk/aws-lambda');
-import ec2 = require('@aws-cdk/aws-ec2');
-import ecs = require('@aws-cdk/aws-ecs');
-import logs = require('@aws-cdk/aws-logs');
-import iam = require('@aws-cdk/aws-iam');
-import events = require('@aws-cdk/aws-events');
-import events_targets = require('@aws-cdk/aws-events-targets');
-import dynamodb = require('@aws-cdk/aws-dynamodb');
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as s3n from 'aws-cdk-lib/aws-s3-notifications';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
+import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as logs from 'aws-cdk-lib/aws-logs';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as events_targets from 'aws-cdk-lib/aws-events-targets';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 
 export class TheEventbridgeEtlStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
     /**
@@ -113,7 +114,7 @@ export class TheEventbridgeEtlStack extends cdk.Stack {
      */
     // defines an AWS Lambda resource to trigger our fargate ecs task
     const extractLambda = new lambda.Function(this, 'extractLambdaHandler', {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromAsset('lambda-fns/extract'), 
       handler: 's3SqsEventConsumer.handler',
       reservedConcurrentExecutions: LAMBDA_THROTTLE_SIZE,
@@ -156,7 +157,7 @@ export class TheEventbridgeEtlStack extends cdk.Stack {
      */
     // defines a lambda to transform the data that was extracted from s3
     const transformLambda = new lambda.Function(this, 'TransformLambdaHandler', {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromAsset('lambda-fns/transform'),
       handler: 'transform.handler',
       reservedConcurrentExecutions: LAMBDA_THROTTLE_SIZE, 
@@ -183,7 +184,7 @@ export class TheEventbridgeEtlStack extends cdk.Stack {
      */
     // load the transformed data in dynamodb
     const loadLambda = new lambda.Function(this, 'LoadLambdaHandler', {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromAsset('lambda-fns/load'),
       handler: 'load.handler',
       timeout: cdk.Duration.seconds(3),
@@ -214,7 +215,7 @@ export class TheEventbridgeEtlStack extends cdk.Stack {
      */
     // Watch for all cdkpatterns.the-eventbridge-etl events and log them centrally
     const observeLambda = new lambda.Function(this, 'ObserveLambdaHandler', {
-      runtime: lambda.Runtime.NODEJS_12_X,
+      runtime: lambda.Runtime.NODEJS_16_X,
       code: lambda.Code.fromAsset('lambda-fns/observe'),
       handler: 'observe.handler',
       timeout: cdk.Duration.seconds(3)
